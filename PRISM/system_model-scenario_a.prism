@@ -1,0 +1,389 @@
+mdp
+
+///////////////////////////////////
+//                               //
+//         MODEL LABELS          //
+//                               //
+///////////////////////////////////
+
+
+// I'm considering the end state to correspond to when
+// the considered time period ends
+label "end" = (time = HORIZON + 1) & (envState = envWait);
+
+
+///////////////////////////////////
+//                               //
+//    MODEL REWARD STRUCTURES    //
+//                               //
+///////////////////////////////////
+
+rewards "systemUtility"
+    [tick] true & (time>0) : totalCost;
+endrewards
+
+
+
+///////////////////////////////////
+//                               //
+//        MODEL FORMULAS         //
+//                               //
+formula finetuneCost = FINETUNE_COST* MULTIPLY_FACTOR +
+    (INIT_COMET22 = -1 ? 0 : ((finetuneDelta_comet22 < deltaThreshold) ? (deltaThreshold - finetuneDelta_comet22)*2*FINETUNE_COST : 0))
+    + (INIT_CHRF = -1 ? 0 : ((finetuneDelta_chrf < deltaThreshold) ? (deltaThreshold - finetuneDelta_chrf)*2*FINETUNE_COST : 0))
+    + (INIT_SACREBLEU = -1 ? 0 : ((finetuneDelta_sacrebleu < deltaThreshold) ? (deltaThreshold - finetuneDelta_sacrebleu)*2*FINETUNE_COST : 0))
+    + (INIT_COMET22_QE = -1 ? 0 : ((finetuneDelta_comet22_qe < deltaThreshold) ? (deltaThreshold - finetuneDelta_comet22_qe)*2*FINETUNE_COST : 0));
+
+formula nopCost = (
+    (INIT_COMET22 = -1 ? 0 : ((finetuneDelta_comet22 >= deltaThreshold) ? finetuneDelta_comet22*2*FINETUNE_COST : 0))
+    + (INIT_CHRF = -1 ? 0 : ((finetuneDelta_chrf >= deltaThreshold) ? finetuneDelta_chrf*2*FINETUNE_COST : 0))
+    + (INIT_SACREBLEU = -1 ? 0 : ((finetuneDelta_sacrebleu >= deltaThreshold) ? finetuneDelta_sacrebleu*2*FINETUNE_COST : 0))
+    + (INIT_COMET22_QE = -1 ? 0 : ((finetuneDelta_comet22_qe >= deltaThreshold) ? finetuneDelta_comet22_qe*2*FINETUNE_COST : 0)));
+
+formula totalCost = (currTactic = finetune ? finetuneCost : nopCost);
+
+formula tacticLatency = (currTactic = finetune ? TACTIC_LATENCY : 0);
+
+formula finetuneDelta_comet22 = ((1/numNewsTopics) * (
+    (weight_Finance * fipDeltaFinance_comet22)
+    + (weight_Entertainment * fipDeltaEntertainment_comet22)
+    + (weight_TravelAndtourism * fipDeltaTravelAndtourism_comet22)
+    + (weight_HealthAndwellness * fipDeltaHealthAndwellness_comet22)
+    + (weight_Sports * fipDeltaSports_comet22)
+    + (weight_Environment * fipDeltaEnvironment_comet22)
+    + (weight_Governance * fipDeltaGovernance_comet22)
+));
+
+formula finetuneDelta_chrf = ((1/numNewsTopics) * (
+    (weight_Finance * fipDeltaFinance_chrf)
+    + (weight_Entertainment * fipDeltaEntertainment_chrf)
+    + (weight_TravelAndtourism * fipDeltaTravelAndtourism_chrf)
+    + (weight_HealthAndwellness * fipDeltaHealthAndwellness_chrf)
+    + (weight_Sports * fipDeltaSports_chrf)
+    + (weight_Environment * fipDeltaEnvironment_chrf)
+    + (weight_Governance * fipDeltaGovernance_chrf)
+));
+
+
+formula finetuneDelta_sacrebleu = ((1/numNewsTopics) * (
+    (weight_Finance * fipDeltaFinance_sacrebleu)
+    + (weight_Entertainment * fipDeltaEntertainment_sacrebleu)
+    + (weight_TravelAndtourism * fipDeltaTravelAndtourism_sacrebleu)
+    + (weight_HealthAndwellness * fipDeltaHealthAndwellness_sacrebleu)
+    + (weight_Sports * fipDeltaSports_sacrebleu)
+    + (weight_Environment * fipDeltaEnvironment_sacrebleu)
+    + (weight_Governance * fipDeltaGovernance_sacrebleu)
+));
+
+
+formula finetuneDelta_comet22_qe = ((1/numNewsTopics) * (
+    (weight_Finance * fipDeltaFinance_comet22_qe)
+    + (weight_Entertainment * fipDeltaEntertainment_comet22_qe)
+    + (weight_TravelAndtourism * fipDeltaTravelAndtourism_comet22_qe)
+    + (weight_HealthAndwellness * fipDeltaHealthAndwellness_comet22_qe)
+    + (weight_Sports * fipDeltaSports_comet22_qe)
+    + (weight_Environment * fipDeltaEnvironment_comet22_qe)
+    + (weight_Governance * fipDeltaGovernance_comet22_qe)
+));
+
+
+// update the MT metrics in case of fine-tune
+formula new_comet22_perf = (
+    INIT_COMET22 = -1 ? 0 : (
+        (comet22_perf + finetune_comet22_delta) >= 100 * MULTIPLY_FACTOR ? 100 * MULTIPLY_FACTOR : comet22_perf + finetune_comet22_delta
+    )
+);
+formula new_chrf_perf = (
+    INIT_CHRF = -1 ? 0 : (
+        (chrf_perf + finetune_chrf_delta) >= 100 * MULTIPLY_FACTOR ? 100 * MULTIPLY_FACTOR : chrf_perf + finetune_chrf_delta
+    )
+);
+formula new_sacrebleu_perf = (
+    INIT_SACREBLEU = -1 ? 0 : (
+        (sacrebleu_perf + finetune_sacrebleu_delta) >= 100 * MULTIPLY_FACTOR ? 100 * MULTIPLY_FACTOR : sacrebleu_perf + finetune_sacrebleu_delta
+    )
+);
+formula new_comet22_qe_perf = (
+    INIT_COMET22_QE = -1 ? 0 : (
+        (comet22_qe_perf + finetune_comet22_qe_delta) >= 100 * MULTIPLY_FACTOR ? 100 * MULTIPLY_FACTOR : comet22_qe_perf + finetune_comet22_qe_delta
+    )
+);
+
+
+///////////////////////////////////
+//                               //
+//        MODEL CONSTANTS        //
+//                               //
+///////////////////////////////////
+
+const int MAX_DOCS = 100;
+
+
+///////////////////////////////////
+//                               //
+//      MONITORED VARIABLES      //
+//                               //
+///////////////////////////////////
+const int HORIZON = 1;
+
+const int CURR_NEW_DATA = 10;   // new data available for the execution of the tactic
+
+const int TACTIC_LATENCY = 0;   // how long it takes for the benefits of the execution of the tactic to be visible
+
+const int FINETUNE_COST;    // cost of finetuning the MT model
+
+const int AVG_DOCS = 15;    // expected amount of new data that will be available in the next time interval
+
+const int INIT_COMET22;        // current COMET score of the MT model
+const int INIT_CHRF;        // current chrF score of the MT model
+const int INIT_SACREBLEU;    // current SacreBleu score of the MT model
+const int INIT_COMET22_QE;    // current COMET_qe score of the MT model
+
+const double deltaThreshold;     // by how much the target metrics (e.g. comet22) should improve such that fine-tuning may be worth it
+
+const int numNewsTopics;    // how many fixed news topics exist
+
+// expected/predicted (variation in) target metric (e.g. comet22) score
+// due to a model finetune (avg) for each fixed topic
+const double fipDeltaFinance_comet22;
+const double fipDeltaEntertainment_comet22;
+const double fipDeltaTravelAndtourism_comet22;
+const double fipDeltaHealthAndwellness_comet22;
+const double fipDeltaSports_comet22;
+const double fipDeltaEnvironment_comet22;
+const double fipDeltaGovernance_comet22;
+
+const double fipDeltaFinance_chrf;
+const double fipDeltaEntertainment_chrf;
+const double fipDeltaTravelAndtourism_chrf;
+const double fipDeltaHealthAndwellness_chrf;
+const double fipDeltaSports_chrf;
+const double fipDeltaEnvironment_chrf;
+const double fipDeltaGovernance_chrf;
+
+const double fipDeltaFinance_sacrebleu;
+const double fipDeltaEntertainment_sacrebleu;
+const double fipDeltaTravelAndtourism_sacrebleu;
+const double fipDeltaHealthAndwellness_sacrebleu;
+const double fipDeltaSports_sacrebleu;
+const double fipDeltaEnvironment_sacrebleu;
+const double fipDeltaGovernance_sacrebleu;
+
+const double fipDeltaFinance_comet22_qe;
+const double fipDeltaEntertainment_comet22_qe;
+const double fipDeltaTravelAndtourism_comet22_qe;
+const double fipDeltaHealthAndwellness_comet22_qe;
+const double fipDeltaSports_comet22_qe;
+const double fipDeltaEnvironment_comet22_qe;
+const double fipDeltaGovernance_comet22_qe;
+
+
+// weight of each news topic, i.e., how relevant is the MT
+// performance of each topic for system utility
+// this is independent of the MT metric(s) in use
+const double weight_Finance;
+const double weight_Entertainment;
+const double weight_TravelAndtourism;
+const double weight_HealthAndwellness;
+const double weight_Sports;
+const double weight_Environment;
+const double weight_Governance;
+
+// by how much performance variables are multiplied to
+// decrease rounding errors
+// (because prism does not allow variables to be floats)
+const int MULTIPLY_FACTOR;
+
+
+///////////////////////////////////
+//                               //
+//          CLOCK MODULE         //
+//                               //
+///////////////////////////////////
+
+// time counter to count how much time has passed and
+// to keep track of latencies of adaptation tactics
+module clk
+
+    time : [0 .. HORIZON + 1] init 0;
+    readyToTick : bool init true;
+
+    [tick] readyToTick  & (time<HORIZON+1) -> 1 : (time'=time+1)&(readyToTick'=false);
+    [tack] !readyToTick & (time<HORIZON+1) -> 1 : (readyToTick'=true);
+
+endmodule
+
+
+
+///////////////////////////////////
+//                               //
+//      ENVIRONMENT MODULE       //
+//                               //
+///////////////////////////////////
+
+
+// the environment generates batches of sentences
+// that are continuously translated and that can
+// be used to fine-tune the MT model
+
+const int envWait = 0;
+const int sendBatch = 1;
+
+module environment
+
+    docs : [0 .. MAX_DOCS] init 0;
+    envState : [envWait .. sendBatch] init envWait;
+
+    [tick] (envState=envWait)&(time<=HORIZON) -> 1: (docs'=AVG_DOCS)&(envState'=sendBatch);
+
+    [newBatch] (envState=sendBatch) -> 1:(envState'=envWait);
+
+    [endExecution] !readyToTick & (time>=HORIZON+1) -> 1:(envState'=envWait);
+
+
+endmodule
+
+
+
+
+///////////////////////////////////
+//                               //
+//  MACHINE TRANSLATION SYSTEM   //
+//                               //
+///////////////////////////////////
+const int sysWait = 0;
+const int updateMetric = 1;
+
+module mts
+
+    // system state
+    sysState : [sysWait .. updateMetric] init sysWait;
+
+    // performance metrics of the mt system
+    comet22_perf : [0 .. 100 * MULTIPLY_FACTOR] init INIT_COMET22;
+    chrf_perf : [0 .. 100 * MULTIPLY_FACTOR] init INIT_CHRF;
+    sacrebleu_perf : [0 .. 100 * MULTIPLY_FACTOR] init INIT_SACREBLEU;
+    comet22_qe_perf : [0 .. 100 * MULTIPLY_FACTOR] init INIT_COMET22_QE;
+
+    // Expected increase/decrease in MT performance metric
+    // (e.g., COMET score) due to the tactic executed
+    finetune_comet22_delta : [0 .. 100] init 0;
+    finetune_chrf_delta : [0 .. 100] init 0;
+    finetune_sacrebleu_delta : [0 .. 100] init 0;
+    finetune_comet22_qe_delta : [0 .. 100] init 0;
+
+    // new data with which to finetune the model
+    newData : [0 .. (HORIZON+1)*MAX_DOCS] init CURR_NEW_DATA;
+
+    mts_go : bool init false;
+
+
+    [newBatch] (newData<HORIZON*MAX_DOCS) -> 1:(newData'=newData+docs);
+
+    // FINETUNE EXECUTION
+    [finetune_complete] true -> 1:
+        (finetune_comet22_delta'=round(finetuneDelta_comet22))
+        & (finetune_chrf_delta'=round(finetuneDelta_chrf))
+        & (finetune_sacrebleu_delta'=round(finetuneDelta_sacrebleu))
+        & (finetune_comet22_qe_delta'=round(finetuneDelta_comet22_qe))
+        &(sysState'=updateMetric)&(newData'=0);
+
+    [] (sysState=updateMetric) -> 1:
+        (comet22_perf'=new_comet22_perf)
+        & (comet22_qe_perf'=new_comet22_qe_perf)
+        & (chrf_perf'=new_chrf_perf)
+        & (sacrebleu_perf'=new_sacrebleu_perf)
+        &(mts_go'=false)&(sysState'=sysWait);
+
+    // NOP EXECUTION
+    [nop_start] true -> (mts_go'=false)&(sysState'=sysWait);
+
+
+    [tick] !mts_go -> 1:(mts_go'=true);
+
+    [endExecution] !readyToTick&(time>=HORIZON+1) -> 1:(mts_go'=true);
+
+endmodule
+
+
+
+///////////////////////////////////
+//                               //
+//    ADAPTION MANAGER MODULE    //
+//                               //
+///////////////////////////////////
+
+// available tactics to improve sys utility
+const int noTactic = 0;
+const int nop = 1;
+const int finetune = 2;
+
+module adaptation_manager
+
+    currTactic : [noTactic .. finetune] init nop;    // current tactic selected to be executed
+    selectTactic : bool init false;    // whether it is the right moment to select a tactic
+
+    [newBatch] !selectTactic -> (selectTactic'=true)&(currTactic'=noTactic);
+
+    [nop_start] (selectTactic=true) -> (currTactic'=nop)&(selectTactic'=false);
+    [finetune_start] (selectTactic=true)&(newData>0) -> (currTactic'=finetune)&(selectTactic'=false);
+
+    [tick] (currTactic!=noTactic) -> 1:(currTactic'=noTactic);
+
+    [endExecution] !readyToTick&(time>=HORIZON+1) -> 1:(currTactic'=noTactic);
+
+endmodule
+
+
+///////////////////////////////////
+//                               //
+//          NOP TACTIC           //
+//                               //
+///////////////////////////////////
+module nop
+
+    nop_go : bool init false;
+
+    // a tactic has been selected so don't execute this one
+    [nop_no_start] (readyToTick)&(currTactic!=noTactic)&(nop_go=true) -> (nop_go'=false);
+
+    // nop tactic applicable - start
+    [nop_start] (readyToTick)&(selectTactic)&(nop_go=true) -> (nop_go'=false);
+
+    [tick] !nop_go -> 1:(nop_go'=true);
+
+    [endExecution] !readyToTick&(time>=HORIZON+1) -> 1:(nop_go'=true);
+
+endmodule
+
+
+///////////////////////////////////
+//                               //
+//        FINETUNE TACTIC        //
+//                               //
+///////////////////////////////////
+module finetune
+
+    finetune_state : [0 .. 1] init 0;
+    //finetune_state : [0 .. FINETUNE_LATENCY] init 0;
+    finetune_go : bool init false;
+
+
+
+    // finetune tactic NOT applicable: no new data - DON'T start
+    [finetune_not_applicable] (readyToTick)&(selectTactic)&(finetune_go=true)&(newData=0) -> (finetune_go'=false);
+
+    // another tactic has been selected so don't execute this one
+    [finetune_no_start] (readyToTick)&(currTactic!=noTactic)&(finetune_go=true)&(finetune_state=0) -> (finetune_go'=false);
+
+    // finetune tactic applicable - start
+    [finetune_start] (readyToTick)&(selectTactic)&(finetune_go=true)&(newData>0) -> (finetune_state'=1);
+
+    // finetune tactic COMPLETE
+    [finetune_complete] (finetune_go=true)&(finetune_state=1) -> (finetune_go'=false)&(finetune_state'=0);
+
+    [tick] !finetune_go -> 1:(finetune_go'=true);
+
+    [endExecution] !readyToTick&(time>=HORIZON+1) -> 1:(finetune_go'=true);
+
+endmodule

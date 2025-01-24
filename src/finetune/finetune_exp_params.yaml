@@ -1,0 +1,30 @@
+# params for hksar news dataset
+# dataset: "hk-news"
+# source_lang: "en"
+# target_lang: "zh"
+# model_checkpoint: "Helsinki-NLP/opus-mt"
+
+# params for opus-eng-fra dataset
+dataset: "opus_eng_fra"
+source_lang: "eng"
+target_lang: "fra"
+model_checkpoint: "marialcasimiro/tatoeba-opus-2021-02-22"
+
+
+metrics:
+  - "Unbabel/wmt22-comet-da"
+  - "Unbabel/wmt22-cometkiwi-da"
+  - "chrf"
+  - "sacrebleu"
+
+comet_batch_size: 64
+
+max_input_length: 128
+max_target_length: 128
+
+
+# huggingFace training arguments
+learning_rate: 2.0e-5
+batch_size: 16
+train_epochs: 1
+fp16: False     # Whether to use fp16 16-bit (mixed) precision training instead of 32-bit training

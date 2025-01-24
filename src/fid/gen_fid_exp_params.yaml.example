@@ -1,0 +1,9 @@
+# params for hksar news dataset
+# dataset: "hk-news"
+# source_lang: "en"
+# target_lang: "zh"
+
+# params for opus-eng-fra dataset
+dataset: "opus_eng_fra"
+source_lang: "eng"
+target_lang: "fra"
