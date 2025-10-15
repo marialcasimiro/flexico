@@ -87,3 +87,5 @@ python3.8 src/flexico/scenarioB/run_adaptiveMT_framework.py -b periodic-2 reacti
 
 ## Acknowledgments
 Support for this research was provided by Fundacão para a Ciência e a Tecnologia (Portuguese Foundation for Science and Technology) and ANI through the Carnegie Mellon Portugal Program under Grant SFRH/BD/150643/2020 and via project with reference UIDB/50021/2020. Part of this work was supported by the EU’s Horizon Europe Research and Innovation Actions (UT-TER, contract 101070631) and innovation programme under Grant Agreement No 101189689, and by the Portuguese Recovery and Resilience Plan through project C645008882- 00000055 (Center for Responsible AI). This work used the Bridges-2 GPU and Ocean resources at the Pittsburgh Supercomputing Center through allocation CIS230074 from the Advanced Cyberinfrastructure Coordination Ecosystem: Services & Support (ACCESS) program [1], which is supported by U.S. National Science Foundation grants #2138259, #2138286, #2138307, #2137603, and #2138296.
+
+![](acks.png)
